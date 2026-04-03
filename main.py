@@ -95,7 +95,7 @@ def worker(my_ip):
         # Update counter setiap kali satu proxy selesai (apapun hasilnya)
         with print_lock:
             checked_count += 1
-            if checked_count % 100 == 0: # Cetak progress setiap 100 proxy
+            if checked_count % 150 == 0: # Cetak progress setiap 100 proxy
                 print(f"--- Progress: {checked_count}/{total_to_check} Checked ---")
         
         q.task_done()
