@@ -5,9 +5,12 @@ import re
 import os
 
 # --- KONFIGURASI ---
-THREADS = 100 # Menaikkan thread agar lebih cepat untuk interval menit
+THREADS = 100 
 TIMEOUT = 10 
-TEST_URL = "http://httpbin.org/get?show_env=1"
+# Gunakan HTTPBin untuk detail teknis (Anonimitas)
+TEST_URL_DETAIL = "http://httpbin.org/get?show_env=1"
+# Gunakan Google untuk cek kualitas akses nyata
+TEST_URL_QUALITY = "https://www.google.com"
 
 SOURCES = [
     "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http",
@@ -55,65 +58,65 @@ def get_anon(res_json, my_ip):
 def worker(my_ip):
     while not q.empty():
         proxy = q.get()
-        # Coba deteksi protokol secara bergantian
         for proto in ['http', 'socks4', 'socks5']:
             try:
                 px = {"http": f"{proto}://{proxy}", "https": f"{proto}://{proxy}"}
-                r = requests.get(TEST_URL, proxies=px, timeout=TIMEOUT)
+                
+                # TAHAP 1: Cek Detail via HTTPBin (Harus JSON)
+                r = requests.get(TEST_URL_DETAIL, proxies=px, timeout=TIMEOUT)
                 if r.status_code == 200:
-                    ip_only = proxy.split(':')[0]
-                    # Ambil data negara (ip-api)
-                    try:
-                        c_data = requests.get(f"http://ip-api.com/json/{ip_only}", timeout=5).json()
-                        cc = c_data.get('countryCode', 'UN')
-                    except: cc = "UN"
+                    data_json = r.json()
                     
-                    anon = get_anon(r.json(), my_ip)
-                    full_proxy = f"{proto}://{proxy}"
-                    
-                    results["all"].append(f"{proxy} | {proto.upper()} | {cc} | {anon}")
-                    results[proto].append(proxy)
-                    
-                    if cc not in countries: countries[cc] = []
-                    countries[cc].append(full_proxy)
-                    break # Berhenti jika sudah ketemu protokol yang cocok
+                    # TAHAP 2: Cek Kualitas via Google
+                    g = requests.get(TEST_URL_QUALITY, proxies=px, timeout=5)
+                    if g.status_code == 200:
+                        ip_only = proxy.split(':')[0]
+                        # Ambil Negara
+                        try:
+                            c_data = requests.get(f"http://ip-api.com/json/{ip_only}", timeout=5).json()
+                            cc = c_data.get('countryCode', 'UN')
+                        except: cc = "UN"
+                        
+                        anon = get_anon(data_json, my_ip)
+                        full_proxy = f"{proto}://{proxy}"
+                        
+                        results["all"].append(f"{proxy} | {proto.upper()} | {cc} | {anon}")
+                        results[proto].append(proxy)
+                        
+                        if cc not in countries: countries[cc] = []
+                        countries[cc].append(full_proxy)
+                        print(f"[SUCCESS] {proto.upper()} - {proxy} ({cc})")
+                        break
             except: continue
         q.task_done()
 
 def main():
-    # Buat folder jika belum ada
     if not os.path.exists('results/countries'): os.makedirs('results/countries', exist_ok=True)
-    
     try: my_ip = requests.get("https://api.ipify.org").text
     except: my_ip = None
 
-    print("--- Memulai Pengumpulan Proxy ---")
+    print("--- Scraping Data ---")
     raw = []
     for s in SOURCES:
         try:
             res = requests.get(s, timeout=15)
             found = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', res.text)
             raw.extend(found)
-            print(f"Sumber {s[:30]}... Berhasil")
         except: pass
 
     unique_list = list(set(raw))
-    print(f"Total unik ditemukan: {len(unique_list)}. Menjalankan pengecekan...")
+    print(f"Total: {len(unique_list)} proxy. Memulai Validasi Ganda...")
 
     for p in unique_list: q.put(p)
-    
     for _ in range(THREADS):
         threading.Thread(target=worker, args=(my_ip,), daemon=True).start()
     q.join()
 
-    # Menyimpan file ke folder results/
     for k, v in results.items():
         with open(f"results/{k}.txt", "w") as f: f.write("\n".join(v))
-    
     for cc, v in countries.items():
         with open(f"results/countries/{cc}.txt", "w") as f: f.write("\n".join(v))
-
-    print("--- Selesai. Data Tersimpan ---")
+    print("--- SELESAI ---")
 
 if __name__ == "__main__":
     main()
