@@ -1,6 +1,6 @@
 # 🚀 Auto Proxy List Updaters (Global & Fast)
 
-Sistem otomatis pengumpulan dan validasi proxy yang diperbarui setiap **5 menit**. Menggunakan GitHub Actions untuk memastikan daftar tetap segar dan aktif.
+Sistem otomatis pengumpulan dan validasi proxy yang diperbarui setiap **30 menit**. Menggunakan GitHub Actions untuk memastikan daftar tetap segar dan aktif.
 
 ## 📌 Fitur Utama
 * **Multi-Protocol:** Mendukung HTTP, SOCKS4, dan SOCKS5.
