@@ -5,11 +5,9 @@ import re
 import os
 
 # --- KONFIGURASI ---
-THREADS = 100 
+THREADS = 200 # Dinaikkan sedikit untuk efisiensi jumlah masif
 TIMEOUT = 5 
-# Gunakan HTTPBin untuk detail teknis (Anonimitas)
 TEST_URL_DETAIL = "http://httpbin.org/get?show_env=1"
-# Gunakan Google untuk cek kualitas akses nyata
 TEST_URL_QUALITY = "https://www.google.com"
 
 SOURCES = [
@@ -61,17 +59,12 @@ def worker(my_ip):
         for proto in ['http', 'socks4', 'socks5']:
             try:
                 px = {"http": f"{proto}://{proxy}", "https": f"{proto}://{proxy}"}
-                
-                # TAHAP 1: Cek Detail via HTTPBin (Harus JSON)
                 r = requests.get(TEST_URL_DETAIL, proxies=px, timeout=TIMEOUT)
                 if r.status_code == 200:
                     data_json = r.json()
-                    
-                    # TAHAP 2: Cek Kualitas via Google
                     g = requests.get(TEST_URL_QUALITY, proxies=px, timeout=5)
                     if g.status_code == 200:
                         ip_only = proxy.split(':')[0]
-                        # Ambil Negara
                         try:
                             c_data = requests.get(f"http://ip-api.com/json/{ip_only}", timeout=5).json()
                             cc = c_data.get('countryCode', 'UN')
@@ -95,23 +88,31 @@ def main():
     try: my_ip = requests.get("https://api.ipify.org").text
     except: my_ip = None
 
-    print("--- Scraping Data ---")
-    raw = []
+    print("--- Scraping Data dengan Deduplikasi Awal ---")
+    # Menggunakan set() untuk deduplikasi instan saat scraping
+    unique_proxies_set = set()
+    
     for s in SOURCES:
         try:
             res = requests.get(s, timeout=15)
+            # Mencari IP:PORT
             found = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', res.text)
-            raw.extend(found)
+            # Tambahkan langsung ke set (otomatis menolak jika duplikat)
+            before_count = len(unique_proxies_set)
+            unique_proxies_set.update(found)
+            new_count = len(unique_proxies_set) - before_count
+            print(f"Sumber: {s[:40]}... (+{new_count} unik)")
         except: pass
 
-    unique_list = list(set(raw))
-    print(f"Total: {len(unique_list)} proxy. Memulai Validasi Ganda...")
+    print(f"\nTotal Akhir Unik: {len(unique_proxies_set)} proxy.")
+    print(f"Memulai Validasi Ganda dengan {THREADS} Threads...\n")
 
-    for p in unique_list: q.put(p)
+    for p in unique_proxies_set: q.put(p)
     for _ in range(THREADS):
         threading.Thread(target=worker, args=(my_ip,), daemon=True).start()
     q.join()
 
+    # Simpan hasil
     for k, v in results.items():
         with open(f"results/{k}.txt", "w") as f: f.write("\n".join(v))
     for cc, v in countries.items():
