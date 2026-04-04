@@ -3,10 +3,12 @@ import threading
 import queue
 import re
 import os
+import random
+import time
 
 # --- KONFIGURASI ---
 THREADS = 150
-TIMEOUT = 5 
+TIMEOUT = 4 
 TEST_URL_DETAIL = "http://httpbin.org/get?show_env=1"
 TEST_URL_QUALITY = "https://www.google.com"
 
@@ -53,6 +55,15 @@ checked_count = 0
 total_to_check = 0
 print_lock = threading.Lock()
 
+# LIST USER-AGENTS MAKSIMAL
+UA_LIST = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (AppleWebKit/537.36; Chrome/120.0.0.0; Mobile Safari/537.36)"
+]
+
 def get_anon(res_json, my_ip):
     origin = res_json.get('origin', '')
     if my_ip and my_ip in origin: return "Transparent"
@@ -60,20 +71,26 @@ def get_anon(res_json, my_ip):
 
 def worker(my_ip):
     global checked_count
+    # Gunakan Session untuk efisiensi koneksi per thread
+    session = requests.Session()
     while not q.empty():
         proxy = q.get()
         success_found = False
         for proto in ['http', 'socks4', 'socks5']:
             try:
                 px = {"http": f"{proto}://{proxy}", "https": f"{proto}://{proxy}"}
-                r = requests.get(TEST_URL_DETAIL, proxies=px, timeout=TIMEOUT)
+                # Random UA untuk pengecekan detail
+                headers = {"User-Agent": random.choice(UA_LIST)}
+                
+                r = session.get(TEST_URL_DETAIL, proxies=px, timeout=TIMEOUT, headers=headers)
                 if r.status_code == 200:
                     data_json = r.json()
-                    g = requests.get(TEST_URL_QUALITY, proxies=px, timeout=5)
+                    g = session.get(TEST_URL_QUALITY, proxies=px, timeout=5, headers=headers)
                     if g.status_code == 200:
                         ip_only = proxy.split(':')[0]
                         try:
-                            c_data = requests.get(f"http://ip-api.com/json/{ip_only}", timeout=5).json()
+                            # Cek negara dengan session
+                            c_data = session.get(f"http://ip-api.com/json/{ip_only}", timeout=5).json()
                             cc = c_data.get('countryCode', 'UN')
                         except: cc = "UN"
                         
@@ -92,10 +109,9 @@ def worker(my_ip):
                         break
             except: continue
         
-        # Update counter setiap kali satu proxy selesai (apapun hasilnya)
         with print_lock:
             checked_count += 1
-            if checked_count % 150 == 0: # Cetak progress setiap 100 proxy
+            if checked_count % 150 == 0: 
                 print(f"--- Progress: {checked_count}/{total_to_check} Checked ---")
         
         q.task_done()
@@ -103,21 +119,52 @@ def worker(my_ip):
 def main():
     global total_to_check
     if not os.path.exists('results/countries'): os.makedirs('results/countries', exist_ok=True)
-    try: my_ip = requests.get("https://api.ipify.org").text
-    except: my_ip = None
+    
+    # Session untuk Scraping dengan Header Maksimal
+    scraper = requests.Session()
+    
+    try: 
+        my_ip = scraper.get("https://api.ipify.org", timeout=10).text
+    except: 
+        my_ip = None
 
-    print("--- Scraping Data dengan Deduplikasi Awal ---")
+    print("--- Scraping Data dengan Proteksi Rate Limit MAKSIMAL ---")
     unique_proxies_set = set()
     
     for s in SOURCES:
-        try:
-            res = requests.get(s, timeout=15)
-            found = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', res.text)
-            before = len(unique_proxies_set)
-            unique_proxies_set.update(found)
-            added = len(unique_proxies_set) - before
-            print(f"Sumber: {s[:35]}... (+{added} unik)")
-        except: pass
+        # Maksimal 3 kali percobaan per sumber dengan jeda adaptif
+        for attempt in range(3):
+            try:
+                current_headers = {
+                    "User-Agent": random.choice(UA_LIST),
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    "Accept-Language": "en-US,en;q=0.5",
+                    "Connection": "keep-alive",
+                    "Upgrade-Insecure-Requests": "1"
+                }
+                
+                res = scraper.get(s, timeout=25, headers=current_headers)
+                
+                if res.status_code == 200:
+                    found = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', res.text)
+                    if found:
+                        before = len(unique_proxies_set)
+                        unique_proxies_set.update(found)
+                        added = len(unique_proxies_set) - before
+                        print(f"Sumber: {s[:35]}... (+{added} unik)")
+                        # Kasih jeda random antar sumber agar tidak dianggap bot beruntun
+                        time.sleep(random.uniform(1.5, 3.0))
+                        break
+                elif res.status_code == 429:
+                    # Jika kena Rate Limit, tidur lebih lama (backoff)
+                    wait_time = (attempt + 1) * 5
+                    print(f"! Rate Limit 429 di {s[:35]}... Tidur {wait_time}s")
+                    time.sleep(wait_time)
+                else:
+                    time.sleep(2)
+                    
+            except Exception:
+                time.sleep(2)
 
     total_to_check = len(unique_proxies_set)
     print(f"\nTotal Akhir Unik: {total_to_check} proxy.")
