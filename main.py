@@ -8,7 +8,7 @@ import time
 
 # --- KONFIGURASI ---
 THREADS = 150
-TIMEOUT = 5 
+TIMEOUT = 3 
 TEST_URL_DETAIL = "http://httpbin.org/get?show_env=1"
 TEST_URL_QUALITY = "https://www.google.com"
 
