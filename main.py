@@ -17,7 +17,7 @@ TEST_URL_QUALITY = "https://www.google.com"
 PAGINASI_CONFIG = {
     "https://www.freeproxy.world/?page={}": 100,
     "https://free.geonix.com/en/?page={}": 100,
-    # Jika nemu web baru tinggal tambah di bawah sini:
+    # NOTES For Upcoming Updates 
     # "https://website-baru.com/list?p={}": 50,
 }
 
