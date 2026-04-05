@@ -1,23 +1,26 @@
-103.39.49.204:3128 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
-103.126.87.182:8080 | HTTP | ID | Anonymous | PT. Rasi Bintang Perkasa
-103.191.196.154:8080 | HTTP | ID | Elite | PT Pangkalan Lintas Data
-103.39.51.148:8080 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
-103.10.231.189:8080 | HTTP | TH | Transparent | CATBB
-188.132.249.195:8080 | HTTP | TR | Transparent | High Speed For Internet S..
+160.19.19.193:8080 | HTTP | ID | Transparent | PT Indo Telemedia Solusi
+223.16.170.103:3128 | HTTP | HK | Transparent | HGC Global Communications..
 223.16.170.103:80 | HTTP | HK | Transparent | HGC Global Communications..
+209.38.154.7:1080 | HTTP | US | Elite | DigitalOcean, LLC
+103.122.64.222:8080 | HTTP | ID | Transparent | PT. Jinom Network Indones..
+188.132.249.232:8080 | HTTP | TR | Transparent | High Speed For Internet S..
+103.39.51.207:8080 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
+188.132.249.195:8080 | HTTP | TR | Transparent | High Speed For Internet S..
+103.39.49.204:3128 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
+160.19.41.60:80 | HTTP | IN | Transparent | ATC INFOCOM SOLUTIONS PVT..
+104.247.51.76:3128 | HTTP | US | Transparent | Lightower Fiber Networks ..
+103.39.51.178:8080 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
 45.186.6.104:3128 | HTTP | EC | Transparent | Perez Tito Julio Cesar
+103.39.49.98:8080 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
+103.39.51.148:8080 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
+103.191.196.154:8080 | HTTP | ID | Elite | PT Pangkalan Lintas Data
+103.126.87.182:8080 | HTTP | ID | Anonymous | PT. Rasi Bintang Perkasa
 109.127.82.85:8080 | HTTP | IQ | Transparent | Allay Nawroz Telecom Comp..
 209.126.84.232:8888 | HTTP | US | Transparent | Contabo Inc.
-89.43.134.56:8080 | HTTP | SY | Transparent | High Speed For Internet S..
-103.39.49.137:3128 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
-103.122.64.222:8080 | HTTP | ID | Transparent | PT. Jinom Network Indones..
-160.19.19.193:8080 | HTTP | ID | Transparent | PT Indo Telemedia Solusi
-104.247.51.76:3128 | HTTP | US | Transparent | Lightower Fiber Networks ..
-195.123.209.48:3128 | HTTP | LV | Transparent | Green Floid LLC
-103.39.51.178:8080 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
-188.132.249.232:8080 | HTTP | TR | Transparent | High Speed For Internet S..
-103.157.117.116:8080 | HTTP | ID | Anonymous | PT Cloud Teknologi Nusant..
-103.39.51.207:8080 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
-49.229.100.235:8080 | HTTP | TH | Transparent | Advanced Wireless Network..
-103.39.49.98:8080 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
+103.10.231.189:8080 | HTTP | TH | Transparent | CATBB
 80.250.165.91:80 | HTTP | RU | Transparent | LLC Stroysvyazkonsaling
+103.39.49.137:3128 | HTTP | ID | Transparent | PT. Mega Mentari Mandiri
+195.123.209.48:3128 | HTTP | LV | Transparent | Green Floid LLC
+103.157.117.116:8080 | HTTP | ID | Anonymous | PT Cloud Teknologi Nusant..
+49.229.100.235:8080 | HTTP | TH | Transparent | Advanced Wireless Network..
+89.43.134.56:8080 | HTTP | SY | Transparent | High Speed For Internet S..
