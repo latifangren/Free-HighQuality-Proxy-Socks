@@ -5,6 +5,9 @@ on:
     - cron: '0 */2 * * *' # Jalan otomatis setiap 2 jam
   workflow_dispatch:      # Tombol manual di tab Actions
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
